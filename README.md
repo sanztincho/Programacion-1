@@ -3,7 +3,7 @@
 ## Collaborators:
 
 - Barzola Valentin
-- Lopez Garcia Francisco
+- López García Francisco
 - Sanz Martin
 - Berardo Franco
 - Boschin Lucas
