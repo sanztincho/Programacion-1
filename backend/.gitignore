@@ -5,7 +5,4 @@
 pyvenv.cfg
 .env
 venv/
-__pycache__/
 .venv/
-../venv/
-../.venv/
