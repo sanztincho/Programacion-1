@@ -34,8 +34,8 @@ def create_app():
     })
 
     #crear archivo bd sino existe
-    if not os.path.exists(os.getenv('DATABASE_PATH') +os.getenv('DATABASE_NAME')):
-        os.mknod(os.getenv('DATABASE_PATH') +os.getenv('DATABASE_NAME'))
+    if not os.path.exists(os.getenv('DATABASE_PATH') + os.getenv('DATABASE_NAME')):
+        os.mknod(os.getenv('DATABASE_PATH') + os.getenv('DATABASE_NAME'))
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
