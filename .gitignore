@@ -1,4 +1,22 @@
-
-# Python caches
+# ---------- Python ----------
 __pycache__/
 *.pyc
+venv/
+.venv/
+backend/lib64
+
+# Variables de entorno reales (se versiona solo .env-example)
+.env
+
+# Imágenes subidas por los usuarios (reseñas)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ---------- Node / Angular ----------
+node_modules/
+frontend/app_rotiseria/dist/
+frontend/app_rotiseria/.angular/
+
+# ---------- Sistema / editores ----------
+.DS_Store
+*.log

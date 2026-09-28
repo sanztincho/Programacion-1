@@ -32,7 +32,7 @@ export class GDU {
    */
   cargarUsuarios() {
     this.cargando = true;
-    this.UsuarioService.getUsuarios().subscribe({
+    this.UsuarioService.getUsuarios({ limit: 200 }).subscribe({
       next: (response: any) => {
         this.arrayusuarios = response;
         this.aplicarFiltros();

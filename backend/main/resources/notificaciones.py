@@ -2,50 +2,12 @@ from flask_restful import Resource
 from flask import request
 from .. import db
 from main.models.notificaciones import Notificacion
-from flask import jsonify
-
-
-
-# NOTIFICACIONES = {
-#     1:{'mensaje':'El pedido esta listo para ser retirado', 'Destinatario':'cliente@gmail.com'},
-#     2:{"mensaje":"El pedido esta en camino", "Destinatario":"cliente@gmail.com"},
-#     3:{'mensaje':'Nuevo pedido recibido', 'Destinatario':'admin@gmail.com'},
-#     4:{"mensaje":"Pago recibido","Destinatario":"admin@gmail.com"}
-
-# }
-    # def post(self):
-
-    #     notificaciones=NotificacionModel.from_json(request.get_json())
-    #     db.session.add(notificaciones)
-    #     db.session.commit()
-    #     return notificaciones.to_json(), 201
-
-
-
-        # data = request.get_json()
-        
-        # #verificacion de rol
-        # rol_emisor = data.get('rol_emisor')
-        # if rol_emisor not in ['ADMIN', 'ENCARGADO']:
-        #     return {'error': 'Rol no autorizado para enviar notificaciones'}, 403  
-
-        # #verifico los campos
-        # if not all(key in data for key in ['mensaje', 'destinatario']):
-        #     return {'error': 'Faltan campos obligatorios (mensaje, destinatario)'}, 400
-
-        # #agrego
-        # id = int(max(NOTIFICACIONES.keys())) + 1 if NOTIFICACIONES else 1
-        # NOTIFICACIONES[id] = {
-        #     'mensaje': data['mensaje'],
-        #     'destinatario': data['destinatario'],
-        #     'rol_emisor': rol_emisor
-        # }
-        # return NOTIFICACIONES[id], 201  
-# resources/notifiaciones.py
+from main.auth.decorators import role_required
 
 
 class Notificaciones(Resource):
 
+    @role_required(roles=['admin', 'empleado'])
     def get(self):
         # Obtener parámetros de consulta para filtrado
         args = request.args
@@ -61,17 +23,15 @@ class Notificaciones(Resource):
 
         # Paginación
         limit = int(args.get('limit', 10))  # Límite de resultados (por defecto 10)
-        page = int(args.get('page', 1))  # Número de página (por defecto 1)
-        offset = (page - 1) * limit  # Desplazamiento
+        page = int(args.get('page', 1))     # Número de página (por defecto 1)
+        offset = (page - 1) * limit         # Desplazamiento
 
-        # Aplicar paginación
         notificaciones = query.offset(offset).limit(limit).all()
+        return [notificacion.to_json() for notificacion in notificaciones], 200
 
-        # Devolver resultados
-        return jsonify([notificacion.to_json() for notificacion in notificaciones])
-
+    @role_required(roles=['admin', 'empleado'])
     def post(self):
-        notificaciones = Notificacion.from_json(request.get_json())
-        db.session.add(notificaciones)
+        notificacion = Notificacion.from_json(request.get_json(silent=True) or {})
+        db.session.add(notificacion)
         db.session.commit()
-        return notificaciones.to_json(), 201
+        return notificacion.to_json(), 201

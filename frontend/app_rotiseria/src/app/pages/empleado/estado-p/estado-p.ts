@@ -112,7 +112,7 @@ export class EstadoP {
     if (!user) return 'Cliente desconocido';
     
     const nombre = user.nombre || user.name || '';
-    const apellido = user.apellido || user.lastname || '';
+    const apellido = user.apellidos || '';
     
     return nombre && apellido ? `${nombre} ${apellido}` : 
            nombre ? nombre : 

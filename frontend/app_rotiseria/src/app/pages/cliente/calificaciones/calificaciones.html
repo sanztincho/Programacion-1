@@ -3,12 +3,37 @@
 <app-header titulo="Calificaciones"></app-header>
 
 <div class="container mt-3 mb-5 pb-5">
-  
+
+  <!-- Filtros -->
+  <div class="card p-3 mb-3 shadow-sm border-0">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label for="estrellas" class="form-label small mb-1">Estrellas</label>
+        <select id="estrellas" class="form-select" [(ngModel)]="filtroEstrellas" (ngModelChange)="aplicarFiltros()">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let n of estrellas.slice().reverse()" [ngValue]="n">{{ n }} estrella(s)</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="conFoto" [(ngModel)]="soloConFoto" (ngModelChange)="aplicarFiltros()">
+          <label class="form-check-label" for="conFoto">Solo con foto</label>
+        </div>
+      </div>
+      <div class="col-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="mias" [(ngModel)]="soloMias" (ngModelChange)="aplicarFiltros()">
+          <label class="form-check-label" for="mias">Solo mis reseñas</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Mensaje de error -->
   <div *ngIf="error" class="alert alert-danger" role="alert">
     <i class="bi bi-exclamation-triangle"></i> {{ error }}
   </div>
-  
+
   <!-- Mensaje de carga -->
   <div *ngIf="cargando" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
@@ -22,26 +47,30 @@
     <div *ngFor="let c of calificaciones" class="card mb-3 p-3 shadow-sm">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <strong>{{ c.usuario }}</strong>
+        <button *ngIf="c.idUsuario === idUsuarioActual" class="btn btn-sm btn-outline-danger"
+                (click)="eliminar(c)" title="Eliminar mi reseña">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
-      
-      <!-- Mostrar producto si existe -->
+
       <div *ngIf="c.producto" class="mb-1">
         <small class="text-muted">Producto: <span class="fw-semibold">{{ c.producto }}</span></small>
       </div>
-      
+
       <p class="mb-2">{{ c.comentario }}</p>
-      
+
+      <!-- Foto adjunta -->
+      <img *ngIf="c.imagen" [src]="c.imagen" alt="Foto de la reseña"
+           class="foto-resena mb-2" (click)="imagenAmpliada = c.imagen">
+
       <!-- Estrellas -->
       <div class="text-warning">
-        <i *ngFor="let estrella of getEstrellas(c.estrellas)" 
-           class="bi" 
-           [ngClass]="estrella <= c.estrellas ? 'bi-star-fill' : 'bi-star'">
-        </i>
+        <i *ngFor="let estrella of estrellas" class="bi"
+           [ngClass]="estrella <= c.estrellas ? 'bi-star-fill' : 'bi-star'"></i>
       </div>
     </div>
 
-    <!-- Componente de paginación -->
-    <app-pagination 
+    <app-pagination
       [currentPage]="currentPage"
       [totalPages]="totalPages"
       (pageChange)="cargarCalificaciones($event)">
@@ -50,7 +79,12 @@
 
   <!-- Mensaje cuando no hay calificaciones -->
   <div *ngIf="!cargando && calificaciones.length === 0 && !error" class="alert alert-info text-center">
-    <i class="bi bi-info-circle"></i> 
-    No hay calificaciones registradas aún.
+    <i class="bi bi-info-circle"></i>
+    No hay calificaciones para mostrar.
   </div>
+</div>
+
+<!-- Imagen ampliada (overlay simple) -->
+<div *ngIf="imagenAmpliada" class="overlay" (click)="imagenAmpliada = null">
+  <img [src]="imagenAmpliada" alt="Foto ampliada">
 </div>

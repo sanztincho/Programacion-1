@@ -1,0 +1,6 @@
+¡Hola {{ user.nombre }}!
+
+Gracias por registrarte en La Rotisería. Tu cuenta quedó creada con el email {{ user.email }}.
+Un empleado va a validar tu cuenta a la brevedad.
+
+¡Te esperamos!

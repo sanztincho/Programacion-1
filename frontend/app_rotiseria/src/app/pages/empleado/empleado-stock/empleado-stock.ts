@@ -34,7 +34,7 @@ export class EmpleadoStock {
    */
   cargarProductos() {
     this.cargando = true;
-    this.productoService.getProductos().subscribe({
+    this.productoService.getProductos({ per_page: 100 }).subscribe({
       next: (response: any) => {
         // Verificar si la respuesta es un array o un objeto
         if (Array.isArray(response)) {

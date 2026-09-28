@@ -1,7 +1,10 @@
 from datetime import datetime
 from .. import db
-from . import UserModel
 
+# Estados válidos de un pedido (se usan para validar en el backend)
+ESTADOS_PEDIDO = ['Pendiente', 'En preparación', 'Listo', 'Rechazado']
+
+# Tabla intermedia de la relación N a N entre Pedido y Producto
 pedido_producto = db.Table(
     'pedido_producto',
     db.Column('pedido_id', db.Integer, db.ForeignKey('pedido.id'), primary_key=True),
@@ -16,9 +19,10 @@ class Pedido(db.Model):
     estado = db.Column(db.String(50), nullable=False)  # Cambiado a String para almacenar el estado del pedido
 
     user = db.relationship('User', back_populates='pedidos')
-    notificaciones = db.relationship('Notificacion', back_populates='pedido')
-    productos = db.relationship('Producto', secondary=pedido_producto,backref=db.backref('pedidos', lazy='dynamic'))  # Cambiado a 'productos' para evitar confusión
-    # back_populates='pedidos'
+    # Si se borra el pedido, se borran sus notificaciones
+    notificaciones = db.relationship('Notificacion', back_populates='pedido', cascade='all, delete-orphan')
+    # Relación N a N con Producto a través de la tabla pedido_producto
+    productos = db.relationship('Producto', secondary=pedido_producto, backref=db.backref('pedidos', lazy='dynamic'))
 
     def __repr__(self):
         return '<Pedido: %r %r>' % (self.id_user, self.precio_final)
@@ -49,7 +53,7 @@ class Pedido(db.Model):
         id = pedido_json.get('id')
         id_user = pedido_json.get('id_user')
         precio_final = pedido_json.get('precio_final')
-        estado = pedido_json.get('estado')
+        estado = (pedido_json.get('estado') or 'Pendiente').strip()
         
         # Manejar la fecha de forma más flexible
         fecha_str = pedido_json.get('fecha')
@@ -62,7 +66,7 @@ class Pedido(db.Model):
                 else:
                     # Formato sin milisegundos: 2024-01-15T10:30:00
                     fecha = datetime.strptime(fecha_str, '%Y-%m-%dT%H:%M:%S')
-            except:
+            except ValueError:
                 # Si todo falla, usar fecha actual
                 fecha = datetime.now()
         else:

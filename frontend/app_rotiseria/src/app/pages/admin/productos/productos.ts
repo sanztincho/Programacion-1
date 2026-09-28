@@ -42,7 +42,7 @@ export class Productos {
    */
   cargarProductos() {
     this.cargando = true;
-    this.productoService.getProductos().subscribe({
+    this.productoService.getProductos({ per_page: 100 }).subscribe({
       next: (response: any) => {
         // Verificar si la respuesta es un array o un objeto
         if (Array.isArray(response)) {
@@ -115,7 +115,8 @@ export class Productos {
       nombre: this.productoTemporal.nombre,
       precio: this.productoTemporal.precio,
       categoria: this.productoTemporal.categoria || '',
-      disponibilidad: 'disponible' // Siempre disponible por defecto
+      // Se conserva la disponibilidad actual (la cambia el empleado desde Stock)
+      disponibilidad: this.productoEditando.disponibilidad || 'disponible'
     };
 
     this.productoService.updateProducto(this.productoEditando.id, productoData).subscribe({
@@ -151,7 +152,7 @@ export class Productos {
    * Elimina un producto de la base de datos
    */
   eliminarProducto(producto: any) {
-    
+    if (!confirm(`¿Eliminar "${producto.nombre}"? También se borran sus reseñas.`)) return;
     const deleteObservable = this.productoService.deleteProducto(producto.id);
     
     deleteObservable.subscribe({

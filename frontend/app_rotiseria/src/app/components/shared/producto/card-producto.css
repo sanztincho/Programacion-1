@@ -165,3 +165,18 @@
   font-size: 0.85rem;
 }
 
+
+/* ========== Calificación ========== */
+.producto-rating {
+  color: #f5a623;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-texto {
+  color: #6c757d;
+  margin-left: 4px;
+  font-size: 0.78rem;
+}

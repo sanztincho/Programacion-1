@@ -87,6 +87,7 @@ export class Usuarios {
    * Elimina un usuario de la base de datos
    */
   eliminarUsuario(usuario: any) {
+    if (!confirm(`¿Eliminar a ${usuario.nombre} ${usuario.apellidos}? Esta acción no se puede deshacer.`)) return;
     this.UsuarioService.deleteUsuario(usuario.id).subscribe({
       next: (response) => {
         alert(`Usuario ${usuario.nombre} ${usuario.apellidos} eliminado correctamente`);

@@ -1,9 +1,45 @@
 <app-navbar></app-navbar>
 
-<app-header titulo="Home"></app-header>
+<app-header titulo="Menú"></app-header>
 
 <div class="container mt-3 mb-5 pb-5">
-  
+
+  <!-- ===== Filtros ===== -->
+  <div class="card filtros-card p-3 mb-3">
+    <app-search
+      placeholder="Buscar por nombre..."
+      [(terminoBusqueda)]="busqueda"
+      (busquedaRealizada)="aplicarFiltros()">
+    </app-search>
+
+    <div class="row g-2">
+      <div class="col-12 col-md-5">
+        <label class="form-label small mb-1" for="filtroValoracion">
+          <i class="bi bi-star-fill text-warning"></i> Calificación
+        </label>
+        <select id="filtroValoracion" class="form-select" [(ngModel)]="valoracionMin" (ngModelChange)="aplicarFiltros()">
+          <option *ngFor="let op of opcionesValoracion" [ngValue]="op.valor">{{ op.texto }}</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-5">
+        <label class="form-label small mb-1" for="orden">
+          <i class="bi bi-sort-down"></i> Ordenar por
+        </label>
+        <select id="orden" class="form-select" [(ngModel)]="orden" (ngModelChange)="aplicarFiltros()">
+          <option value="">Predeterminado</option>
+          <option value="valoracion">Mejor calificados</option>
+          <option value="precio_asc">Precio: menor a mayor</option>
+          <option value="precio_desc">Precio: mayor a menor</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+          <i class="bi bi-x-lg"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Mensaje de carga -->
   <div *ngIf="cargando" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
@@ -12,29 +48,61 @@
     <p class="mt-2">Cargando productos...</p>
   </div>
 
-  <!-- Lista de productos -->
-  <div *ngIf="!cargando && productosFiltrados.length > 0" class="row g-3">
-    <div class="col-12 col-sm-6 col-lg-4" *ngFor="let p of productosFiltrados">
-      <app-card-producto
-        [id]="p.id"
-        [nombre]="p.nombre"
-        [categoria]="p.categoria"
-        [precio]="p.precio"
-        [imagen]="p.imagen">
-        
-        <!-- Botones exclusivos para clientes -->
-        <ng-container *ngIf="userRole === 'cliente'">
-          <button class="btn btn-success" (click)="agregarAlCarrito(p)">
-            <i class="bi bi-cart-plus-fill"></i> Agregar
+  <!-- ===== Lista de productos ===== -->
+  <div *ngIf="!cargando && productos.length > 0">
+    <p class="text-muted small mb-2">{{ totalItems }} producto(s) encontrado(s)</p>
+
+    <div class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-4" *ngFor="let p of productos">
+        <app-card-producto
+          [id]="p.id"
+          [nombre]="p.nombre"
+          [categoria]="p.categoria"
+          [precio]="p.precio"
+          [imagen]="p.imagen"
+          [disponible]="p.disponible"
+          [promedio]="p.promedio_valoracion"
+          [cantidadValoraciones]="p.cantidad_valoraciones">
+
+          <!-- Botones exclusivos para clientes -->
+          <div *ngIf="userRole === 'cliente'" class="d-flex gap-2 mb-2">
+            <button class="btn btn-success flex-fill" (click)="agregarAlCarrito(p)">
+              <i class="bi bi-cart-plus-fill"></i> Agregar
+            </button>
+            <button class="btn btn-outline-secondary" (click)="personalizar(p)" title="Personalizar">
+              <i class="bi bi-sliders"></i>
+            </button>
+          </div>
+
+          <!-- Resumen de reseñas con IA (todos los roles) -->
+          <button *ngIf="p.cantidad_valoraciones > 0" class="btn btn-sm btn-outline-primary w-100"
+                  (click)="verResumen(p)" [disabled]="estaCargandoResumen(p.id)">
+            <span *ngIf="estaCargandoResumen(p.id)" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!estaCargandoResumen(p.id)" class="bi bi-stars"></i>
+            {{ resumenDe(p.id) ? 'Ocultar resumen' : 'Resumen de reseñas' }}
           </button>
-        </ng-container>
-      </app-card-producto>
+          <div *ngIf="resumenDe(p.id) as r" class="resumen-ia mt-2">
+            {{ r.texto }}
+            <div class="small text-muted mt-1">
+              {{ r.fuente === 'llm' ? 'Generado por IA' : 'Resumen automático' }}
+            </div>
+          </div>
+        </app-card-producto>
+      </div>
     </div>
+
+    <!-- Paginación (componente reutilizable, se comunica con @Input y @Output) -->
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      [totalItems]="totalItems"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 
   <!-- Mensaje cuando no hay productos -->
-  <div *ngIf="!cargando && productosFiltrados.length === 0" class="alert alert-info text-center">
-    <i class="bi bi-info-circle"></i> 
-    No hay productos disponibles en este momento.
+  <div *ngIf="!cargando && productos.length === 0" class="alert alert-info text-center">
+    <i class="bi bi-info-circle"></i>
+    No hay productos que coincidan con los filtros.
   </div>
 </div>

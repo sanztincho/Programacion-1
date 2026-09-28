@@ -4,29 +4,27 @@
     <div class="col-12 col-md-6">
       <div class="card shadow-sm p-4">
 
+        <!-- Mensaje de error del login -->
+        <div *ngIf="mensajeError" class="alert alert-danger py-2" role="alert">
+          <i class="bi bi-exclamation-triangle"></i> {{ mensajeError }}
+        </div>
 
-        <form [formGroup]="loginForm">
-
-              <div class="mb-3">
-                  <label class="form-label">Email</label>
-                  <input type="email" id="email" formControlName="email" class="form-control" placeholder="tu@correo.com">
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Contraseña</label>
-                  <input type="password" id="password" formControlName="password" class="form-control" placeholder="••••••••">
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="rec">
-                  <label class="form-check-label" for="rec">Recordarme</label>
-                </div>
-                <a routerLink="#" class="small">Olvidé mi contraseña</a>
-              </div>
-              <button class="btn btn-primary w-100" (click)="submit()">Ingresar</button>
-
+        <form [formGroup]="loginForm" (ngSubmit)="submit()">
+          <div class="mb-3">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" id="email" formControlName="email" class="form-control" placeholder="tu@correo.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="password">Contraseña</label>
+            <input type="password" id="password" formControlName="password" class="form-control" placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary w-100" [disabled]="enviando">
+            <span *ngIf="enviando" class="spinner-border spinner-border-sm me-2"></span>
+            {{ enviando ? 'Ingresando...' : 'Ingresar' }}
+          </button>
         </form>
-            <div class="text-center mt-3">
 
+        <div class="text-center mt-3">
           <small>¿No tenés cuenta? <a routerLink="/auth/register">Registrate</a></small>
         </div>
       </div>

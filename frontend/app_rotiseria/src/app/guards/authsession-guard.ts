@@ -1,48 +1,36 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { Auth } from '../services/auth';
 
+/**
+ * Guard de rutas: decide si se puede entrar a una ruta.
+ * - Sin token válido (o expirado) -> al login.
+ * - Con token pero rol no permitido -> a la pantalla de inicio de su rol.
+ * Uso en app.routes.ts: canActivate: [authsessionGuard(['admin'])]
+ */
 export const authsessionGuard = (allowedRoles?: string[]): CanActivateFn => {
   return (route, state) => {
     const router = inject(Router);
-    const token = localStorage.getItem('token');
-    
-    // Verificar si está autenticado
-    if (!token) {
-      router.navigate(['/auth/login']);
-      return false;
+    const auth = inject(Auth);
+
+    // Verificar si está autenticado (existe el token y no expiró)
+    if (!auth.isAuthenticated()) {
+      auth.logout();
+      return router.createUrlTree(['/auth/login']);
     }
-    
-    // Si no se especifican roles, solo verificar autenticación
+
+    // Si no se especifican roles, alcanza con estar autenticado
     if (!allowedRoles || allowedRoles.length === 0) {
       return true;
     }
-    
+
     // Verificar roles
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const userRole = payload.rol;
-      
-      if (allowedRoles.includes(userRole)) {
-        return true;
-      }
-      
-      // Si no tiene permiso, redirigir según su rol
-      if (userRole === 'admin') {
-        router.navigate(['/admin/usuarios']);
-      } else if (userRole === 'empleado') {
-        router.navigate(['/empleado/gdu']);
-      } else if (userRole === 'cliente') {
-        router.navigate(['/cliente/cliente-home']);
-      } else {
-        router.navigate(['/home']);
-      }
-      
-      return false;
-    } catch (error) {
-      // Token inválido
-      localStorage.removeItem('token');
-      router.navigate(['/auth/login']);
-      return false;
+    const userRole = auth.getUserRole();
+    if (userRole && allowedRoles.includes(userRole)) {
+      return true;
     }
+
+    // Si no tiene permiso, redirigir a la pantalla de inicio de su rol
+    return router.createUrlTree([auth.rutaInicio(userRole)]);
   };
 };

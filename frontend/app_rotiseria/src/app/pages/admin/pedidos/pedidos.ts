@@ -121,7 +121,8 @@ export class PedidosAdmin {
       id: pedido.id,
       precio_final: pedido.total,
       estado: pedido.estado,
-      fecha: this.convertirFechaParaInput(pedido.fecha)
+      // Se usa la fecha original (ISO) del backend, no la ya formateada para mostrar
+      fecha: this.convertirFechaParaInput(pedido._original?.fecha)
     };
 
     // Scroll hacia arriba para ver el formulario
@@ -188,6 +189,7 @@ export class PedidosAdmin {
     if (!fecha) return '';
     try {
       const date = new Date(fecha);
+      if (isNaN(date.getTime())) return '';
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
@@ -225,8 +227,8 @@ export class PedidosAdmin {
    */
   obtenerNombreCliente(user: any): string {
     if (!user) return 'Cliente desconocido';
-    return user.nombre && user.apellido 
-      ? `${user.nombre} ${user.apellido}` 
+    return user.nombre && user.apellidos
+      ? `${user.nombre} ${user.apellidos}` 
       : user.email || 'Cliente sin nombre';
   }
 

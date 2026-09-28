@@ -13,3 +13,30 @@
   color: #ffc107 !important;
   font-size: 1.2rem;
 }
+
+/* Miniatura de la foto de la reseña */
+.foto-resena {
+  max-width: 160px;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: zoom-in;
+}
+
+/* Fondo oscuro para ver la foto en grande */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: zoom-out;
+}
+
+.overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}

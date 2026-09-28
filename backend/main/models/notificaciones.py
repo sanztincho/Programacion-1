@@ -1,6 +1,4 @@
 from .. import db
-import json
-from datetime import datetime
 
 class Notificacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -17,8 +15,8 @@ class Notificacion(db.Model):
             'id_usuario': self.id_usuario,
             'mensaje': self.mensaje,
             'id_pedido': self.id_pedido,
-            'user': self.user.to_json(),
-            'pedido': self.pedido.to_json()
+            'user': self.user.to_json() if self.user else None,
+            'pedido': self.pedido.to_json_short() if self.pedido else None
         }
         return notificaciones_json
     

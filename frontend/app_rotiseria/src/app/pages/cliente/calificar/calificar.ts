@@ -1,43 +1,51 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router,} from '@angular/router'; 
-import { CommonModule } from '@angular/common'; 
-import { FormsModule } from '@angular/forms'; 
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../components/shared/navbar/navbar';
 import { Header } from '../../../components/shared/header/header';
 import { Valoraciones } from '../../../services/valoraciones';
-import { Auth } from '../../../services/auth';
 import { Pedidos } from '../../../services/pedidos';
 
 @Component({
   selector: 'app-calificar',
   standalone: true,
-  imports: [ CommonModule, FormsModule, Navbar, Header], 
+  imports: [CommonModule, FormsModule, Navbar, Header],
   templateUrl: './calificar.html',
   styleUrl: './calificar.css'
 })
 export class Calificar implements OnInit {
-  
+
+  // Formatos y tamaño máximo (deben coincidir con lo que valida el backend)
+  readonly TIPOS_PERMITIDOS = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+  readonly MAX_MB = 5;
+
   pedidoId: number | null = null;
   pedidoData: any = null;
   cargando: boolean = false;
   enviando: boolean = false;
-  
-  // Variables para la calificación
-  rating: number = 0; 
-  hoverRating: number = 0; 
+
+  // Datos de la calificación
+  productoId: number | null = null;   // producto del pedido que se califica
+  rating: number = 0;
+  hoverRating: number = 0;
   comentario: string = '';
-  
-  mensajeExito: string | null = null; 
+
+  // Imagen adjunta
+  imagen: File | null = null;
+  previewImagen: string | null = null;
+
+  mensajeExito: string | null = null;
 
   constructor(
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
     private router: Router,
     private valoracionesService: Valoraciones,
-    private authService: Auth,
     private pedidosService: Pedidos
   ) { }
 
   ngOnInit(): void {
+    // El id del pedido viene en la URL: /cliente/calificar/:idPedido
     this.route.paramMap.subscribe(params => {
       const idString = params.get('idPedido');
       if (idString) {
@@ -52,101 +60,100 @@ export class Calificar implements OnInit {
    */
   cargarDatosPedido() {
     if (!this.pedidoId) return;
-    
+
     this.cargando = true;
     this.pedidosService.getPedido(this.pedidoId).subscribe({
       next: (response: any) => {
         this.pedidoData = response;
+        // Por defecto se preselecciona el primer producto del pedido
+        this.productoId = response.productos?.length ? response.productos[0].id : null;
         this.cargando = false;
       },
-      error: (error) => {
+      error: () => {
         this.cargando = false;
         this.mensajeExito = '⚠️ No se pudo cargar la información del pedido';
       }
     });
   }
 
-  /**
-   * 
-   * @param value El valor de la estrella seleccionada (1-5).
-   */
   setRating(value: number): void {
-    this.rating = value; 
+    this.rating = value;
   }
 
-  /**
-   * 
-   * @param value 
-   */
   setHoverRating(value: number): void {
-    this.hoverRating = value; 
+    this.hoverRating = value;
   }
 
-  /**
-   * 
-   */
   resetHoverRating(): void {
-    this.hoverRating = 0; 
+    this.hoverRating = 0;
   }
 
   /**
-   * Obtiene los nombres de los productos del pedido
+   * Se ejecuta cuando el usuario elige un archivo en el <input type="file">
    */
-  obtenerNombresProductos(): string {
-    if (!this.pedidoData || !this.pedidoData.productos || this.pedidoData.productos.length === 0) {
-      return 'Sin productos';
+  onImagenSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files && input.files.length ? input.files[0] : null;
+    if (!archivo) return;
+
+    if (!this.TIPOS_PERMITIDOS.includes(archivo.type)) {
+      this.mensajeExito = '⚠️ Formato no permitido. Usá PNG, JPG, GIF o WEBP.';
+      input.value = '';
+      return;
     }
-    
-    return this.pedidoData.productos.map((p: any) => p.nombre).join(', ');
-  }
-
-  // --- Lógica de Envío ---
-
-  enviarCalificacion(): void {
-    if (this.rating === 0) {
-      this.mensajeExito = "⚠️ Por favor, selecciona una calificación (1 a 5 estrellas) antes de enviar.";
-      return; 
-    }
-
-    if (!this.pedidoData || !this.pedidoData.productos || this.pedidoData.productos.length === 0) {
-      this.mensajeExito = "⚠️ No se puede calificar: el pedido no tiene productos.";
+    if (archivo.size > this.MAX_MB * 1024 * 1024) {
+      this.mensajeExito = `⚠️ La imagen supera los ${this.MAX_MB} MB.`;
+      input.value = '';
       return;
     }
 
-    const userId = this.authService.getCurrentUserId();
-    if (!userId) {
-      this.mensajeExito = "⚠️ Error: Usuario no identificado.";
+    this.mensajeExito = null;
+    this.imagen = archivo;
+    // FileReader convierte el archivo en una URL "data:" para mostrar la vista previa
+    const lector = new FileReader();
+    lector.onload = () => this.previewImagen = lector.result as string;
+    lector.readAsDataURL(archivo);
+  }
+
+  quitarImagen(input: HTMLInputElement): void {
+    this.imagen = null;
+    this.previewImagen = null;
+    input.value = '';
+  }
+
+  // --- Lógica de envío ---
+
+  enviarCalificacion(): void {
+    if (this.rating === 0) {
+      this.mensajeExito = '⚠️ Por favor, seleccioná una calificación (1 a 5 estrellas) antes de enviar.';
+      return;
+    }
+    if (!this.productoId) {
+      this.mensajeExito = '⚠️ Elegí qué producto del pedido querés calificar.';
       return;
     }
 
     this.enviando = true;
 
-    // Tomar el primer producto del pedido para la valoración
-    const primerProducto = this.pedidoData.productos[0];
+    // FormData arma un cuerpo multipart/form-data: campos de texto + archivo
+    const datos = new FormData();
+    datos.append('id_producto', String(this.productoId));
+    datos.append('puntuacion', String(this.rating));
+    datos.append('comentario', this.comentario || '');
+    if (this.imagen) {
+      datos.append('imagen', this.imagen, this.imagen.name);
+    }
+    // El id del usuario NO se manda: el backend lo toma del token
 
-    const valoracionData = {
-      id_usuario: userId,
-      id_producto: primerProducto.id,
-      puntuacion: this.rating,
-      comentario: this.comentario || ''
-    };
-
-    this.valoracionesService.createValoracion(valoracionData).subscribe({
-      next: (response) => {
-        this.mensajeExito = "✅ Su valoración ha sido enviada con éxito.";
-        
-        // Limpiar formulario
-        this.rating = 0;
-        this.comentario = '';
+    this.valoracionesService.createValoracion(datos).subscribe({
+      next: () => {
+        this.mensajeExito = '✅ Su valoración ha sido enviada con éxito.';
         this.enviando = false;
-        
         // Redirigir a calificaciones después de 2 segundos
-        setTimeout(() => {
-          this.router.navigate(['/cliente/calificaciones']); 
-        }, 2000); 
+        setTimeout(() => this.router.navigate(['/cliente/calificaciones']), 2000);
       },
       error: (error) => {
-        this.mensajeExito = "⚠️ Error al enviar la calificación. Intenta nuevamente.";
+        this.mensajeExito = '⚠️ ' + (error.error?.message || 'Error al enviar la calificación. Intentá nuevamente.');
         this.enviando = false;
       }
     });

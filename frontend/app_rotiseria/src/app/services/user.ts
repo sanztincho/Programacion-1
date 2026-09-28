@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ import { Observable } from 'rxjs';
 export class User {
 
   private http = inject(HttpClient);
-  url = 'http://localhost:5000';
+  url = environment.apiUrl;
   
   /**
    * Obtiene todos los usuarios (requiere rol admin)

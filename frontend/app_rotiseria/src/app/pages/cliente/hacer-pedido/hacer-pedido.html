@@ -1,12 +1,12 @@
 <app-navbar></app-navbar>
 
-<app-header titulo="{{ producto ? 'Editar pedido' : 'Nuevo pedido' }}"></app-header>
+<app-header titulo="Personalizar pedido"></app-header>
 
 
 <div class="container mt-3" *ngIf="producto">
   <div class="card p-3">
     <h5 class="card-title">{{ producto.nombre }}</h5>
-    <p class="card-text">Precio: ${{ producto.precio }}</p>
+    <p class="card-text">Precio: ${{ producto.precio | number:'1.2-2' }}</p>
 
     <div class="mb-3">
       <label for="cantidad" class="form-label">Cantidad</label>

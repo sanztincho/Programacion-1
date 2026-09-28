@@ -5,8 +5,7 @@ from .pedidos import Pedido as PedidoResource
 from .valoraciones import Valoracion as ValoracionResource
 from .valoraciones import Valoraciones as ValoracionesResource
 from .notificaciones import Notificaciones as NotificacionResource
-from .auth import Login
-from .auth import Logout
 from .producto import Producto as ProductoResource
 from .producto import Productos as ProductosResource
+from .producto import ResumenProducto as ResumenProductoResource
 from .asignaciones import Asignacion as AsignacionResource

@@ -1,7 +1,10 @@
 <div class="producto-card">
   <!-- Imagen del producto -->
   <div class="producto-imagen">
-    <img [src]="imagen || 'assets/placeholder.jpg'" [alt]="nombre">
+    <img [src]="imagen || 'assets/buger1.jpg'" [alt]="nombre">
+    <span *ngIf="!disponible" class="badge-no-disponible">
+      <i class="bi bi-x-circle"></i> No disponible
+    </span>
   </div>
 
   <!-- Información del producto -->
@@ -10,16 +13,26 @@
     <p class="producto-categoria">
       <i class="bi bi-tag-fill"></i> {{ categoria }}
     </p>
+
+    <!-- Calificación promedio (solo si la página la envía) -->
+    <div *ngIf="cantidadValoraciones !== undefined" class="producto-rating">
+      <ng-container *ngIf="cantidadValoraciones > 0; else sinResenas">
+        <i *ngFor="let n of estrellas" class="bi" [ngClass]="iconoEstrella(n)"></i>
+        <span class="rating-texto">{{ promedio | number:'1.1-1' }} ({{ cantidadValoraciones }})</span>
+      </ng-container>
+      <ng-template #sinResenas>
+        <span class="rating-texto">Sin reseñas todavía</span>
+      </ng-template>
+    </div>
+
     <p class="producto-precio">
       <span class="precio-label">Precio:</span>
       <strong class="precio-valor">${{ precio | number:'1.2-2' }}</strong>
     </p>
   </div>
 
-  <!-- Botones personalizados (proyectados desde la página) -->
+  <!-- Botones personalizados (proyectados desde la página con ng-content) -->
   <div class="producto-acciones">
     <ng-content></ng-content>
   </div>
 </div>
-
-
